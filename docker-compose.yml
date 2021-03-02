@@ -7,19 +7,50 @@ services:
       POSTGRES_PASSWORD: 5UvUwY3xRH86xXhx
       POSTGRES_DB: conference_app
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./backend/data:/var/lib/postgresql/data
 
   backend:
     build:
       context: ./backend
     depends_on:
       - postgres
+    volumes:
+      - ./backend/src:/usr/src/app/src
     environment:
       PORT: 80
       JWT_SECRET: jfslkdjflaksjflkljfsl
       PGHOST: host.docker.internal
       PGPORT: 5432
-      PGAPPNAME: Conference GO!
+
+      WAIT_HOSTS: postgres:5432
+
+      # Thes values are the same as below
+      PGDATABASE: conference_app
+      PGUSER: conference_app_user
+      PGPASSWORD: 5UvUwY3xRH86xXhx
+
+  account-postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: accounts
+      POSTGRES_USER: conference_app_user
+      POSTGRES_PASSWORD: 5UvUwY3xRH86xXhx
+    volumes:
+      - ./account/data:/var/lib/postgresql/data
+
+  account:
+    build:
+      context: ./account
+    depends_on:
+      - account-postgres
+    volumes:
+      - ./account/src:/usr/src/app/src
+    environment:
+      PORT: 80
+      JWT_SECRET: jfslkdjflaksjflkljfsl
+      PGHOST: host.docker.internal
+      PGPORT: 5432
+
       WAIT_HOSTS: postgres:5432
 
       # Thes values are the same as below
@@ -30,10 +61,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: http://localhost:8080/api
     depends_on:
       - backend
     ports:
       - '8080:80'
+    volumes:
+      - ./frontend/frontend.nginx.conf:/etc/nginx/conf.d/default.conf

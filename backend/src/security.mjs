@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { pool } from './db/index.mjs';
 
 dotenv.config();
 
@@ -8,13 +7,6 @@ const secret = process.env['JWT_SECRET']
 if (secret === undefined || secret.length === 0) {
   console.error('ERROR: Missing JWT_SECRET environment variable.');
   process.exit(2);
-}
-
-export function signToken(claims) {
-  if (!Number.isInteger(claims.exp)) {
-    claims.exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
-  }
-  return jwt.sign(claims, secret);
 }
 
 export function verifyToken(token) {
@@ -47,16 +39,6 @@ export async function bearer(ctx, next) {
       console.error(decodeToken(token));
       console.error(e);
     }
-  }
-  await next();
-}
-
-export async function identify(ctx, next) {
-  let { rows } = await pool.query(`
-    SELECT id FROM accounts WHERE email = $1
-  `, [ctx.claims.email]);
-  if (rows.length === 1) {
-    ctx.claims.id = rows[0].id;
   }
   await next();
 }

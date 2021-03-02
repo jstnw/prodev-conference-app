@@ -1,4 +1,4 @@
-FROM node:15-alpine
+FROM node:15.8.0-alpine
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci
@@ -16,5 +16,5 @@ RUN chmod +x /wait
 # Use the /wait command to wait for PostgreSQL
 # Run the migrations
 # Start the app
-CMD /wait && npm run migrate -- up && npm run dev
+CMD /wait && npm run migrate -- up && npm run start
 #CMD npm run migrate -- up && npm run start
